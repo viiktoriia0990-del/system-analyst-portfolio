@@ -1,0 +1,5 @@
+summary: ИНН не подходит к форме
+value:
+  code: INVALID_REQUEST
+  message: 'Поле inn: для LLC ИНН должен содержать 10 цифр, передано 12 (772345678901).'
+  traceId: trace-5b073

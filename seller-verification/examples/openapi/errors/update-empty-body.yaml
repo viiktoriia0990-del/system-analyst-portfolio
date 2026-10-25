@@ -1,0 +1,5 @@
+summary: Пустое тело
+value:
+  code: INVALID_REQUEST
+  message: 'Передайте хотя бы одно поле для изменения: legalForm, legalName, inn, contactEmail или documents.'
+  traceId: trace-5b070

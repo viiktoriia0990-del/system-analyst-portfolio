@@ -1,0 +1,16 @@
+summary: Первая отправка на проверку
+value:
+  id: app-501
+  sellerId: seller-024
+  status: SUBMITTED
+  legalForm: IP
+  legalName: ИП Смирнова Анна Викторовна
+  inn: '771234567890'
+  contactEmail: anna.smirnova@example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3101
+  - type: ASSAY_REGISTRATION
+    fileId: file-3102
+  createdAt: '2026-10-22T09:10:00Z'
+  updatedAt: '2026-10-22T09:15:00Z'

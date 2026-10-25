@@ -1,0 +1,5 @@
+summary: Отказ без комментария
+value:
+  code: COMMENT_REQUIRED
+  message: Для решения REJECTED укажите причину отказа в поле comment.
+  traceId: trace-5b040

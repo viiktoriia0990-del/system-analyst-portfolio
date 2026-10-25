@@ -1,0 +1,5 @@
+summary: Доработка без комментария
+value:
+  code: COMMENT_REQUIRED
+  message: Для решения NEEDS_REWORK укажите в поле comment, что нужно исправить.
+  traceId: trace-5b041

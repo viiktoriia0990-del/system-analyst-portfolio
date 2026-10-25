@@ -1,0 +1,5 @@
+summary: Номер страницы меньше 1
+value:
+  code: INVALID_PAGINATION
+  message: Параметр page должен быть не меньше 1, передано 0.
+  traceId: trace-5b002

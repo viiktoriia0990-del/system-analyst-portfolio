@@ -1,0 +1,8 @@
+summary: Страница за пределами списка
+value:
+  items: []
+  pagination:
+    page: 10
+    size: 3
+    totalItems: 7
+    totalPages: 3

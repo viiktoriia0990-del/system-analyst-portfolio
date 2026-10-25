@@ -1,0 +1,18 @@
+summary: Отклонённая заявка в архив
+value:
+  id: app-492
+  sellerId: seller-027
+  status: REJECTED
+  legalForm: LLC
+  legalName: ООО «Аурум»
+  inn: '7709876543'
+  contactEmail: info@aurum.example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-2901
+  - type: ASSAY_REGISTRATION
+    fileId: file-2902
+  reviewComment: Организация не состоит на специальном учёте в Пробирной палате.
+  archivedAt: '2026-10-23T09:30:00Z'
+  createdAt: '2026-10-19T11:30:00Z'
+  updatedAt: '2026-10-23T09:30:00Z'

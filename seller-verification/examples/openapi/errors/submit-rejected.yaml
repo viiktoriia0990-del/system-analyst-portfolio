@@ -1,0 +1,5 @@
+summary: Отклонена
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: Заявка app-499 отклонена (статус REJECTED). Повторная отправка недоступна. Перенесите её в архив и создайте новую заявку.
+  traceId: trace-5b034

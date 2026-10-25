@@ -1,0 +1,16 @@
+name: submitted
+summary: Продавец отправил заявку на проверку
+headers:
+  content-type: application/json
+  event-type: SellerApplicationStatusChanged
+  correlation-id: trace-7f10a
+payload:
+  eventId: evt-20030
+  eventVersion: 1
+  occurredAt: '2026-10-22T09:15:00Z'
+  correlationId: trace-7f10a
+  applicationId: app-501
+  sellerId: seller-024
+  actorId: seller-024
+  previousStatus: DRAFT
+  newStatus: SUBMITTED

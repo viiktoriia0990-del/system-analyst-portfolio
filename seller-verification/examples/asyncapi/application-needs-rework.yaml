@@ -1,0 +1,17 @@
+name: needsRework
+summary: Юридический отдел вернул заявку на доработку
+headers:
+  content-type: application/json
+  event-type: SellerApplicationStatusChanged
+  correlation-id: trace-7f20b
+payload:
+  eventId: evt-20031
+  eventVersion: 1
+  occurredAt: '2026-10-23T11:40:00Z'
+  correlationId: trace-7f20b
+  applicationId: app-501
+  sellerId: seller-024
+  actorId: legal-007
+  previousStatus: SUBMITTED
+  newStatus: NEEDS_REWORK
+  comment: Лист записи ЕГРИП старше 30 дней. Загрузите свежую выписку.

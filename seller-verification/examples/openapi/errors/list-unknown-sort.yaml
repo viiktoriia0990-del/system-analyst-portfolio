@@ -1,0 +1,5 @@
+summary: Неизвестная сортировка
+value:
+  code: INVALID_REQUEST
+  message: 'Сортировка по полю name не поддерживается. Доступно: createdAt, -createdAt, updatedAt, -updatedAt.'
+  traceId: trace-5b003

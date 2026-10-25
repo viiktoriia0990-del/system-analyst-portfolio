@@ -1,0 +1,68 @@
+type: object # Корневой тип схемы заявки
+description: Заявка продавца на верификацию
+additionalProperties: false # Запрещает поля вне properties
+required:
+- id
+- sellerId
+- status
+- legalForm
+- legalName
+- inn
+- contactEmail
+- documents
+- createdAt
+- updatedAt
+properties:
+  id:
+    type: string
+    example: app-501
+  sellerId:
+    type: string
+    example: seller-024
+  status:
+    $ref: ./application-status.yaml
+  legalForm:
+    $ref: ./legal-form.yaml
+  legalName:
+    type: string
+    minLength: 3
+    maxLength: 255
+    example: ИП Смирнова Анна Викторовна
+  inn:
+    type: string
+    pattern: '^(\d{10}|\d{12})$'
+    example: '771234567890'
+  contactEmail:
+    type: string
+    format: email
+    example: anna.smirnova@example.com
+  documents:
+    type: array
+    description: Приложенные документы
+    items:
+      $ref: ./document.yaml
+  sellerComment:
+    type: string
+    description: Комментарий продавца, оставленный при последней отправке на проверку
+    maxLength: 1000
+    example: Загрузила свежую выписку ЕГРИП от 24.10.2026.
+  reviewComment:
+    type: string
+    description: Комментарий юридического отдела. Заполняется при статусах `REJECTED` и `NEEDS_REWORK`
+    maxLength: 2000
+    example: Лист записи ЕГРИП старше 30 дней. Загрузите свежую выписку.
+  archivedAt:
+    type: string
+    format: date-time
+    description: Когда заявку перенесли в архив. Поля нет, если заявка не в архиве
+    example: '2026-10-24T10:05:00Z'
+  createdAt:
+    type: string
+    format: date-time
+    description: Когда заявка создана
+    example: '2026-10-22T09:10:00Z'
+  updatedAt:
+    type: string
+    format: date-time
+    description: Когда заявка менялась последний раз — правка, отправка, решение юриста, архив
+    example: '2026-10-23T11:40:00Z'

@@ -1,0 +1,7 @@
+summary: Заменить документы при доработке
+value:
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3105
+  - type: ASSAY_REGISTRATION
+    fileId: file-3102

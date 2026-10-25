@@ -1,0 +1,26 @@
+type: object # Сведения о странице выдачи
+description: Параметры текущей страницы и общее количество записей
+additionalProperties: false
+required:
+- page
+- size
+- totalItems
+- totalPages
+properties:
+  page:
+    type: integer
+    minimum: 1
+    example: 1
+  size:
+    type: integer
+    minimum: 1
+    maximum: 100
+    example: 20
+  totalItems:
+    type: integer
+    minimum: 0
+    example: 37
+  totalPages:
+    type: integer
+    minimum: 0
+    example: 2

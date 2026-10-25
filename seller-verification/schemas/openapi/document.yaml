@@ -1,0 +1,23 @@
+type: object
+description: Документ, приложенный к заявке. Файл загружается заранее отдельным сервисом, здесь передаётся только его идентификатор
+additionalProperties: false
+required:
+- type
+- fileId
+properties:
+  type:
+    type: string
+    description: >-
+      Тип документа. Для отправки на проверку обязательны REGISTRATION_RECORD и ASSAY_REGISTRATION
+    enum:
+    - REGISTRATION_RECORD
+    - ASSAY_REGISTRATION
+    - OTHER
+    x-enumDescriptions:
+      REGISTRATION_RECORD: Лист записи ЕГРИП или ЕГРЮЛ — обязателен
+      ASSAY_REGISTRATION: Подтверждение постановки на специальный учёт — обязателен
+      OTHER: Другой документ — по желанию продавца
+    example: ASSAY_REGISTRATION
+  fileId:
+    type: string
+    example: file-3102

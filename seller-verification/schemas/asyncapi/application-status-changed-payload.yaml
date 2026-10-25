@@ -1,0 +1,51 @@
+type: object # Корневой тип payload события
+description: Данные события о смене статуса заявки
+required:
+- eventId
+- eventVersion
+- occurredAt
+- correlationId
+- applicationId
+- sellerId
+- actorId
+- previousStatus
+- newStatus
+properties:
+  eventId:
+    type: string
+    description: Идентификатор события. Потребитель использует его, чтобы не обработать событие дважды
+    examples:
+    - evt-20031
+  eventVersion:
+    type: integer
+    examples:
+    - 1
+  occurredAt:
+    type: string
+    format: date-time
+    examples:
+    - '2026-10-23T11:40:00Z'
+  correlationId:
+    type: string
+    examples:
+    - trace-7f20b
+  applicationId:
+    type: string
+    examples:
+    - app-501
+  sellerId:
+    type: string
+    examples:
+    - seller-024
+  actorId:
+    type: string
+    examples:
+    - legal-007
+  previousStatus:
+    $ref: ../openapi/application-status.yaml
+  newStatus:
+    $ref: ../openapi/application-status.yaml
+  comment:
+    type: string
+    examples:
+    - Лист записи ЕГРИП старше 30 дней. Загрузите свежую выписку.

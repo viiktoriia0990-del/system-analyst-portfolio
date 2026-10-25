@@ -1,0 +1,14 @@
+type: object # Ответ со списком заявок
+description: Страница списка заявок
+additionalProperties: false
+required:
+- items
+- pagination
+properties:
+  items:
+    type: array
+    description: Заявки на текущей странице
+    items:
+      $ref: ./application-summary.yaml
+  pagination:
+    $ref: ./pagination.yaml

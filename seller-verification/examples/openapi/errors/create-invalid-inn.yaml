@@ -1,0 +1,5 @@
+summary: Неверный ИНН
+value:
+  code: INVALID_REQUEST
+  message: 'Поле inn: ИНН должен содержать 10 цифр для ООО или 12 цифр для ИП, передано 77123.'
+  traceId: trace-5b010

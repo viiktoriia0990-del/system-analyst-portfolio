@@ -1,0 +1,5 @@
+summary: Есть незаконченный черновик
+value:
+  code: APPLICATION_ALREADY_EXISTS
+  message: У вас уже есть черновик заявки app-507. Продолжите заполнять его.
+  traceId: trace-5b015

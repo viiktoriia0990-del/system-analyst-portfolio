@@ -1,0 +1,14 @@
+summary: Черновик восстановлен из архива
+value:
+  id: app-504
+  sellerId: seller-032
+  status: DRAFT
+  legalForm: IP
+  legalName: ИП Белова Мария Игоревна
+  inn: '774567890123'
+  contactEmail: m.belova@example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3301
+  createdAt: '2026-10-22T13:00:00Z'
+  updatedAt: '2026-10-25T09:00:00Z'

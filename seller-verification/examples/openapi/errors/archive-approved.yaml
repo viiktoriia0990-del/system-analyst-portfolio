@@ -1,0 +1,5 @@
+summary: Уже одобрена
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: Заявка app-495 одобрена (статус APPROVED). Одобренную заявку нельзя перенести в архив.
+  traceId: trace-5b081

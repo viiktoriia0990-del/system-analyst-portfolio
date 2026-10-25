@@ -1,0 +1,5 @@
+summary: На проверке
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: Заявка app-505 на проверке (статус SUBMITTED). Перенести её в архив можно после решения юриста.
+  traceId: trace-5b080

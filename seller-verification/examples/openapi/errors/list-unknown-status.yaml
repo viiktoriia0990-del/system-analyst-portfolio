@@ -1,0 +1,5 @@
+summary: Неизвестный статус
+value:
+  code: INVALID_REQUEST
+  message: 'Статус IN_REVIEW не существует. Доступно: DRAFT, SUBMITTED, NEEDS_REWORK, APPROVED, REJECTED.'
+  traceId: trace-5b004

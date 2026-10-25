@@ -1,0 +1,41 @@
+type: object # Корневой тип стандартной ошибки
+description: Стандартный ответ с ошибкой
+additionalProperties: false
+required:
+- code
+- message
+- traceId
+properties:
+  code:
+    type: string
+    enum:
+    - INVALID_REQUEST
+    - INVALID_PAGINATION
+    - COMMENT_REQUIRED
+    - UNAUTHORIZED
+    - FORBIDDEN
+    - APPLICATION_NOT_FOUND
+    - APPLICATION_ALREADY_EXISTS
+    - REQUIRED_DOCUMENTS_MISSING
+    - INVALID_STATUS_TRANSITION
+    - APPLICATION_ARCHIVED
+    - APPLICATION_NOT_ARCHIVED
+    x-enumDescriptions: # Для каждого кода — HTTP-статус и когда он возвращается. Конкретные сообщения — в примерах ответов
+      INVALID_REQUEST: 400 · неверный формат поля, пустое тело, поле нельзя менять, неизвестный статус или сортировка
+      INVALID_PAGINATION: 400 · page меньше 1 или size вне диапазона 1–100
+      COMMENT_REQUIRED: 400 · решение REJECTED или NEEDS_REWORK без комментария
+      UNAUTHORIZED: 401 · токен не передан или истёк
+      FORBIDDEN: 403 · у роли нет прав на операцию или заявка чужая
+      APPLICATION_NOT_FOUND: 404 · заявки с таким идентификатором нет
+      APPLICATION_ALREADY_EXISTS: 409 · у продавца уже есть незакрытая заявка (заявки в архиве не считаются)
+      REQUIRED_DOCUMENTS_MISSING: 409 · не приложены обязательные документы
+      INVALID_STATUS_TRANSITION: 409 · операция недоступна в текущем статусе заявки
+      APPLICATION_ARCHIVED: 409 · заявка в архиве, изменить или отправить её можно только после восстановления
+      APPLICATION_NOT_ARCHIVED: 409 · восстановить можно только заявку из архива
+    example: REQUIRED_DOCUMENTS_MISSING
+  message:
+    type: string
+    example: 'Заявку app-507 нельзя отправить: приложите подтверждение постановки на специальный учёт (ASSAY_REGISTRATION).'
+  traceId:
+    type: string
+    example: trace-5b030

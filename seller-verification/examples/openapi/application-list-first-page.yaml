@@ -1,0 +1,32 @@
+summary: Первая страница
+value:
+  items:
+  - id: app-507
+    sellerId: seller-031
+    status: DRAFT
+    legalForm: IP
+    legalName: ИП Котова Елена Сергеевна
+    inn: '772345678901'
+    createdAt: '2026-10-22T14:20:00Z'
+    updatedAt: '2026-10-22T14:20:00Z'
+  - id: app-506
+    sellerId: seller-030
+    status: NEEDS_REWORK
+    legalForm: LLC
+    legalName: ООО «Грань»
+    inn: '7712345678'
+    createdAt: '2026-10-22T12:05:00Z'
+    updatedAt: '2026-10-23T14:30:00Z'
+  - id: app-505
+    sellerId: seller-029
+    status: SUBMITTED
+    legalForm: IP
+    legalName: ИП Орлов Дмитрий Андреевич
+    inn: '773456789012'
+    createdAt: '2026-10-22T11:00:00Z'
+    updatedAt: '2026-10-22T11:10:00Z'
+  pagination:
+    page: 1
+    size: 3
+    totalItems: 7
+    totalPages: 3

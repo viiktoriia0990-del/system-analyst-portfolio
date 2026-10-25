@@ -1,0 +1,5 @@
+summary: Размер страницы больше 100
+value:
+  code: INVALID_PAGINATION
+  message: Параметр size должен быть от 1 до 100, передано 500.
+  traceId: trace-5b001

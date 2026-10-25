@@ -1,0 +1,14 @@
+summary: Сменить форму организации
+value:
+  id: app-507
+  sellerId: seller-031
+  status: DRAFT
+  legalForm: LLC
+  legalName: ООО «Котова Ювелир»
+  inn: '7723456789'
+  contactEmail: e.kotova@example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3210
+  createdAt: '2026-10-22T14:20:00Z'
+  updatedAt: '2026-10-23T08:30:00Z'

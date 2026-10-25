@@ -1,0 +1,590 @@
+openapi: 3.1.0
+info:
+  title: API заявок продавцов
+  version: 1.0.0
+  description: >-
+    Часть проектной документации маркетплейса N, модуль заявок продавцов.
+    Название компании, реквизиты и данные продавцов изменены.
+    Продавец создаёт заявку на верификацию, правит её и отправляет на проверку.
+    Юридический отдел принимает решение. Заявку можно перенести в архив и восстановить.
+servers:
+- url: http://localhost:4010
+  description: Локальный mock-сервер Prism
+security:
+- bearerAuth: []
+tags:
+- name: Seller applications
+  description: Работа продавца со своей заявкой на верификацию
+- name: Review
+  description: Очередь заявок и решение сотрудника юридического отдела
+paths:
+  /seller-applications:
+    get: # Список заявок с фильтром и пагинацией
+      tags:
+      - Review
+      operationId: listSellerApplications
+      summary: Получить список заявок
+      description: >-
+        Возвращает заявки постранично. `LEGAL_OFFICER` видит все заявки, `SELLER` — только свои.
+        По умолчанию первая страница по 20 заявок, сначала новые. Заявки в архиве показываются только с `archived=true`
+      parameters:
+      - $ref: '#/components/parameters/StatusFilter'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Archived'
+      responses:
+        '200':
+          description: Страница списка заявок
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/application-list-response.yaml
+              examples:
+                firstPage:
+                  $ref: ../examples/openapi/application-list-first-page.yaml
+                secondPage:
+                  $ref: ../examples/openapi/application-list-second-page.yaml
+                reviewQueue:
+                  $ref: ../examples/openapi/application-list-review-queue.yaml
+                byStatuses:
+                  $ref: ../examples/openapi/application-list-by-statuses.yaml
+                outOfRange:
+                  $ref: ../examples/openapi/application-list-empty-response.yaml
+                archived:
+                  $ref: ../examples/openapi/application-list-archived.yaml
+        '400':
+          description: Неверные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples: # Переключатель вариантов ошибки в Response samples
+                sizeTooLarge:
+                  $ref: ../examples/openapi/errors/list-size-too-large.yaml
+                pageZero:
+                  $ref: ../examples/openapi/errors/list-page-zero.yaml
+                unknownSort:
+                  $ref: ../examples/openapi/errors/list-unknown-sort.yaml
+                unknownStatus:
+                  $ref: ../examples/openapi/errors/list-unknown-status.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Seller applications
+      operationId: createSellerApplication
+      summary: Создать заявку
+      description: >-
+        Создаёт заявку на верификацию в статусе `DRAFT`. Доступно роли `SELLER`.
+        У продавца может быть только одна незакрытая заявка, повторное создание возвращает `409`.
+        Заявки в архиве не учитываются
+      requestBody:
+        description: Данные продавца и приложенные документы
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/openapi/create-application-request.yaml
+            examples:
+              default:
+                $ref: ../examples/openapi/create-application-request.yaml
+      responses:
+        '201':
+          description: Заявка создана
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml
+              examples:
+                created:
+                  $ref: ../examples/openapi/application-created-response.yaml
+        '400':
+          description: Неверный формат данных заявки
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                invalidInn:
+                  $ref: ../examples/openapi/errors/create-invalid-inn.yaml
+                invalidEmail:
+                  $ref: ../examples/openapi/errors/create-invalid-email.yaml
+                missingName:
+                  $ref: ../examples/openapi/errors/create-missing-name.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Создавать заявки может только продавец
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                wrongRole:
+                  $ref: ../examples/openapi/errors/create-forbidden-role.yaml
+        '409':
+          description: У продавца уже есть незакрытая заявка
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                alreadySubmitted:
+                  $ref: ../examples/openapi/errors/create-already-submitted.yaml
+                alreadyDraft:
+                  $ref: ../examples/openapi/errors/create-already-draft.yaml
+  /seller-applications/{applicationId}: # Path для операций с конкретной заявкой
+    parameters: # Общие path-параметры
+    - $ref: '#/components/parameters/ApplicationId' # Ссылка на параметр ApplicationId ниже в components.parameters
+    get: # HTTP-метод для чтения заявки
+      tags: # Группа операции в документации
+      - Seller applications
+      operationId: getSellerApplication # Уникальный идентификатор операции
+      summary: Получить заявку # Короткое название операции
+      description: >- # Поведение и проверка прав
+        Возвращает заявку. Продавец видит только свою заявку,
+        сотрудник юридического отдела (`LEGAL_OFFICER`) — любую.
+        Notification Service вызывает метод с сервисным токеном, чтобы получить contactEmail для письма
+      responses: # Возможные HTTP-ответы
+        '200': # Успешное получение
+          description: Заявка получена
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml # Схема заявки
+              examples:
+                submitted:
+                  $ref: ../examples/openapi/application-submitted-response.yaml # Пример заявки на проверке
+        '401':
+          $ref: '#/components/responses/Unauthorized' # Общий ответ 401
+        '403': # Продавец запрашивает чужую заявку
+          description: Заявка принадлежит другому продавцу
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                foreignApplication:
+                  $ref: ../examples/openapi/errors/get-foreign-application.yaml
+        '404':
+          $ref: '#/components/responses/ApplicationNotFound' # Общий ответ 404
+    patch: # Частичное изменение заявки
+      tags:
+      - Seller applications
+      operationId: updateSellerApplication
+      summary: Изменить заявку
+      description: >-
+        Меняет данные заявки в статусе `DRAFT` или `NEEDS_REWORK`. Доступно продавцу-владельцу заявки.
+        Передаются только поля, которые нужно изменить (JSON Merge Patch, RFC 7396).
+        Можно менять `contactEmail`, `legalName`, `documents`, а `legalForm` — только вместе с новым `inn`.
+        Статус через этот метод не меняется
+      requestBody:
+        description: Поля, которые нужно изменить
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: ../schemas/openapi/update-application-request.yaml
+            examples:
+              changeEmail: # Варианты запроса — те же сценарии и названия, что у ответа 200
+                $ref: ../examples/openapi/update-email-request.yaml
+              changeLegalForm:
+                $ref: ../examples/openapi/update-legal-form-request.yaml
+              replaceDocuments:
+                $ref: ../examples/openapi/update-documents-request.yaml
+      responses:
+        '200':
+          description: Заявка изменена
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml
+              examples:
+                changeEmail:
+                  $ref: ../examples/openapi/application-email-updated-response.yaml
+                changeLegalForm:
+                  $ref: ../examples/openapi/application-legal-form-updated-response.yaml
+                replaceDocuments:
+                  $ref: ../examples/openapi/application-documents-updated-response.yaml
+        '400':
+          description: Неверные данные для изменения
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                emptyBody:
+                  $ref: ../examples/openapi/errors/update-empty-body.yaml
+                readOnlyField:
+                  $ref: ../examples/openapi/errors/update-read-only-field.yaml
+                legalFormWithoutInn:
+                  $ref: ../examples/openapi/errors/update-legal-form-without-inn.yaml
+                innMismatch:
+                  $ref: ../examples/openapi/errors/update-inn-mismatch.yaml
+                invalidEmail:
+                  $ref: ../examples/openapi/errors/update-invalid-email.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Заявка принадлежит другому продавцу
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                foreignApplication:
+                  $ref: ../examples/openapi/errors/get-foreign-application.yaml
+        '404':
+          $ref: '#/components/responses/ApplicationNotFound'
+        '409':
+          description: Заявку нельзя изменить в текущем состоянии
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                underReview:
+                  $ref: ../examples/openapi/errors/update-under-review.yaml
+                approved:
+                  $ref: ../examples/openapi/errors/update-approved.yaml
+                rejected:
+                  $ref: ../examples/openapi/errors/update-rejected.yaml
+                archived:
+                  $ref: ../examples/openapi/errors/update-archived.yaml
+  /seller-applications/{applicationId}/submit:
+    parameters:
+    - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags:
+      - Seller applications
+      operationId: submitSellerApplication
+      summary: Отправить заявку на проверку
+      description: >-
+        Переводит заявку из `DRAFT` или `NEEDS_REWORK` в `SUBMITTED`. Доступно продавцу-владельцу заявки.
+        Перед отправкой проверяется, что приложены все обязательные документы.
+        Тело необязательное: в нём продавец может оставить комментарий для юриста
+      requestBody:
+        description: Комментарий продавца для юридического отдела
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/openapi/submit-request.yaml
+            examples:
+              default:
+                $ref: ../examples/openapi/submit-request.yaml
+      responses:
+        '200':
+          description: Заявка отправлена на проверку
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml
+              examples:
+                submitted:
+                  $ref: ../examples/openapi/application-submitted-response.yaml
+                resubmitted:
+                  $ref: ../examples/openapi/application-resubmitted-response.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Заявка принадлежит другому продавцу
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                foreignApplication:
+                  $ref: ../examples/openapi/errors/get-foreign-application.yaml
+        '404':
+          $ref: '#/components/responses/ApplicationNotFound'
+        '409':
+          description: Заявку нельзя отправить в текущем состоянии
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                assayMissing:
+                  $ref: ../examples/openapi/errors/submit-assay-missing.yaml
+                allDocumentsMissing:
+                  $ref: ../examples/openapi/errors/submit-all-missing.yaml
+                alreadySubmitted:
+                  $ref: ../examples/openapi/errors/submit-already-submitted.yaml
+                alreadyApproved:
+                  $ref: ../examples/openapi/errors/submit-already-approved.yaml
+                rejected:
+                  $ref: ../examples/openapi/errors/submit-rejected.yaml
+                archived:
+                  $ref: ../examples/openapi/errors/submit-archived.yaml
+  /seller-applications/{applicationId}/archive:
+    parameters:
+    - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags:
+      - Seller applications
+      operationId: archiveSellerApplication
+      summary: Перенести заявку в архив
+      description: >-
+        Мягкое удаление: заявка остаётся в системе, но пропадает из списка и не мешает создать новую.
+        Доступно продавцу-владельцу для заявок в статусах `DRAFT`, `NEEDS_REWORK` и `REJECTED`.
+        Статус не меняется, в заявке появляется `archivedAt`. Тело не передаётся: заявка определяется по `applicationId`
+      responses:
+        '200':
+          description: Заявка перенесена в архив
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml
+              examples:
+                archivedDraft:
+                  $ref: ../examples/openapi/application-archived-draft-response.yaml
+                archivedRejected:
+                  $ref: ../examples/openapi/application-archived-rejected-response.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Заявка принадлежит другому продавцу
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                foreignApplication:
+                  $ref: ../examples/openapi/errors/get-foreign-application.yaml
+        '404':
+          $ref: '#/components/responses/ApplicationNotFound'
+        '409':
+          description: Заявку нельзя перенести в архив
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                underReview:
+                  $ref: ../examples/openapi/errors/archive-under-review.yaml
+                approved:
+                  $ref: ../examples/openapi/errors/archive-approved.yaml
+                alreadyArchived:
+                  $ref: ../examples/openapi/errors/archive-already-archived.yaml
+  /seller-applications/{applicationId}/restore:
+    parameters:
+    - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags:
+      - Seller applications
+      operationId: restoreSellerApplication
+      summary: Восстановить заявку из архива
+      description: >-
+        Возвращает заявку из архива в том же статусе, в котором её архивировали. Доступно продавцу-владельцу.
+        Тело не передаётся: заявка определяется по `applicationId`.
+        Черновик или заявку на доработке нельзя восстановить, если у продавца уже есть другая незакрытая заявка
+      responses:
+        '200':
+          description: Заявка восстановлена
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml
+              examples:
+                restored:
+                  $ref: ../examples/openapi/application-restored-response.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Заявка принадлежит другому продавцу
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                foreignApplication:
+                  $ref: ../examples/openapi/errors/get-foreign-application.yaml
+        '404':
+          $ref: '#/components/responses/ApplicationNotFound'
+        '409':
+          description: Заявку нельзя восстановить
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                notArchived:
+                  $ref: ../examples/openapi/errors/restore-not-archived.yaml
+                openApplicationExists:
+                  $ref: ../examples/openapi/errors/restore-open-application-exists.yaml
+  /seller-applications/{applicationId}/decision:
+    parameters:
+    - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags:
+      - Review
+      operationId: decideSellerApplication
+      summary: Принять решение по заявке
+      description: >-
+        Сохраняет решение по заявке в статусе `SUBMITTED`. Доступно роли `LEGAL_OFFICER`.
+        При решениях `REJECTED` и `NEEDS_REWORK` комментарий обязателен.
+        При `APPROVED` продавец получает доступ к продажам.
+        Значение `decision` в запросе становится статусом заявки в ответе
+      requestBody:
+        description: Решение и комментарий для продавца
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/openapi/decision-request.yaml
+            examples:
+              approve: # Варианты запроса — те же сценарии и названия, что у ответа 200
+                $ref: ../examples/openapi/decision-approve-request.yaml
+              needsRework:
+                $ref: ../examples/openapi/decision-rework-request.yaml
+              reject:
+                $ref: ../examples/openapi/decision-reject-request.yaml
+      responses:
+        '200':
+          description: Решение сохранено
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/seller-application.yaml
+              examples:
+                approved:
+                  $ref: ../examples/openapi/application-approved-response.yaml
+                needsRework:
+                  $ref: ../examples/openapi/application-rework-response.yaml
+                reject:
+                  $ref: ../examples/openapi/application-rejected-response.yaml
+        '400':
+          description: Не указана причина решения
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                rejectedWithoutComment:
+                  $ref: ../examples/openapi/errors/decision-comment-rejected.yaml
+                reworkWithoutComment:
+                  $ref: ../examples/openapi/errors/decision-comment-rework.yaml
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Решение может принять только сотрудник юридического отдела
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                wrongRole:
+                  $ref: ../examples/openapi/errors/decision-forbidden-role.yaml
+        '404':
+          $ref: '#/components/responses/ApplicationNotFound'
+        '409':
+          description: Заявка не ожидает решения
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/openapi/error-response.yaml
+              examples:
+                stillDraft:
+                  $ref: ../examples/openapi/errors/decision-draft.yaml
+                alreadyDecided:
+                  $ref: ../examples/openapi/errors/decision-already-decided.yaml
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer-токен пользователя. Роль (`SELLER` или `LEGAL_OFFICER`) и права проверяет backend
+  parameters:
+    ApplicationId: # Переиспользуемый path-параметр
+      name: applicationId
+      in: path
+      required: true
+      description: Идентификатор заявки
+      schema:
+        type: string
+      example: app-501
+    StatusFilter: # Фильтр по статусу
+      name: status
+      in: query
+      required: false
+      description: Показать заявки только в этих статусах. Можно передать несколько, например `status=SUBMITTED&status=NEEDS_REWORK`
+      schema:
+        type: array
+        items:
+          $ref: ../schemas/openapi/application-status.yaml
+      style: form
+      explode: true
+      example:
+      - SUBMITTED
+    Page: # Номер страницы
+      name: page
+      in: query
+      required: false
+      description: Номер страницы, начиная с 1
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      example: 1
+    Size: # Размер страницы
+      name: size
+      in: query
+      required: false
+      description: Сколько заявок вернуть на странице
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      example: 3
+    Sort: # Сортировка
+      name: sort
+      in: query
+      required: false
+      description: >-
+        Поле сортировки. Без минуса — по возрастанию, с минусом — по убыванию.
+        Для очереди юриста — `status=SUBMITTED&sort=updatedAt`: у заявки на проверке последнее изменение — это отправка,
+        поэтому первыми идут те, кто ждёт дольше всех
+      schema:
+        type: string
+        enum:
+        - createdAt
+        - -createdAt
+        - updatedAt
+        - -updatedAt
+        default: -createdAt
+      example: updatedAt
+    Archived: # Показывать архив
+      name: archived
+      in: query
+      required: false
+      description: >-
+        `false` — только активные заявки, `true` — только заявки в архиве
+      schema:
+        type: boolean
+        default: false
+      example: false
+  responses: # Общие ответы, одинаковые для всех методов
+    Unauthorized:
+      description: Токен отсутствует, истёк или недействителен
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/openapi/error-response.yaml
+          examples:
+            tokenMissing:
+              $ref: ../examples/openapi/errors/token-missing.yaml
+            tokenExpired:
+              $ref: ../examples/openapi/errors/token-expired.yaml
+    ApplicationNotFound:
+      description: Заявка не найдена
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/openapi/error-response.yaml
+          examples:
+            notFound:
+              $ref: ../examples/openapi/errors/application-not-found.yaml

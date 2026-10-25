@@ -1,0 +1,9 @@
+type: string
+description: Организационно-правовая форма продавца
+enum:
+- IP
+- LLC
+x-enumDescriptions:
+  IP: Индивидуальный предприниматель
+  LLC: Общество с ограниченной ответственностью
+example: IP

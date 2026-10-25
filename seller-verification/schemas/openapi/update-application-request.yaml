@@ -1,0 +1,33 @@
+type: object # Тело PATCH в формате JSON Merge Patch (RFC 7396)
+description: >-
+  Изменение заявки. Передаются только поля, которые нужно изменить, остальные остаются как были.
+  Форма организации и ИНН меняются только вместе: у ИП ИНН из 12 цифр, у ООО из 10.
+  Список документов передаётся целиком и заменяет прежний
+additionalProperties: false
+minProperties: 1
+dependentRequired: # Смена формы без ИНН и ИНН без формы запрещены
+  legalForm:
+  - inn
+  inn:
+  - legalForm
+properties:
+  legalForm:
+    $ref: ./legal-form.yaml
+  legalName:
+    type: string
+    minLength: 3
+    maxLength: 255
+    example: ООО «Котова Ювелир»
+  inn:
+    type: string
+    pattern: '^(\d{10}|\d{12})$'
+    example: '7723456789'
+  contactEmail:
+    type: string
+    format: email
+    example: elena.kotova@example.com
+  documents:
+    type: array
+    description: Новый список документов целиком. Документы, которых нет в списке, открепляются от заявки
+    items:
+      $ref: ./document.yaml

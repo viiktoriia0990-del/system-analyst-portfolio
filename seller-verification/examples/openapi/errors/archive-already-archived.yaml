@@ -1,0 +1,5 @@
+summary: Уже в архиве
+value:
+  code: APPLICATION_ARCHIVED
+  message: Заявка app-504 уже в архиве.
+  traceId: trace-5b082

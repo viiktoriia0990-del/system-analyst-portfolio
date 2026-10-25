@@ -1,0 +1,17 @@
+type: string
+description: >-
+  Статус заявки. Переходы: DRAFT → SUBMITTED, NEEDS_REWORK → SUBMITTED,
+  SUBMITTED → APPROVED | REJECTED | NEEDS_REWORK
+enum:
+- DRAFT
+- SUBMITTED
+- NEEDS_REWORK
+- APPROVED
+- REJECTED
+x-enumDescriptions:
+  DRAFT: Черновик, продавец ещё не отправил заявку
+  SUBMITTED: Отправлена, ждёт решения юридического отдела
+  NEEDS_REWORK: Возвращена продавцу на доработку
+  APPROVED: Одобрена, продавец допущен к продажам
+  REJECTED: Отклонена, повторно не отправляется
+example: SUBMITTED

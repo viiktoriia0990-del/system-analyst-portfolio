@@ -1,0 +1,9 @@
+type: object
+description: Данные при отправке заявки на проверку. Тело необязательное
+additionalProperties: false
+properties:
+  sellerComment:
+    type: string
+    description: Комментарий продавца для юридического отдела, например что исправлено после доработки
+    maxLength: 1000
+    example: Загрузила свежую выписку ЕГРИП от 24.10.2026.

@@ -1,0 +1,14 @@
+summary: Сменить email
+value:
+  id: app-507
+  sellerId: seller-031
+  status: DRAFT
+  legalForm: IP
+  legalName: ИП Котова Елена Сергеевна
+  inn: '772345678901'
+  contactEmail: elena.kotova@example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3201
+  createdAt: '2026-10-22T14:20:00Z'
+  updatedAt: '2026-10-23T08:00:00Z'

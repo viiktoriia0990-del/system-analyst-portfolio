@@ -1,0 +1,5 @@
+summary: Токен истёк
+value:
+  code: UNAUTHORIZED
+  message: Срок действия токена истёк. Войдите заново.
+  traceId: trace-5b051

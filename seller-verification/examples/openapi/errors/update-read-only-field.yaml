@@ -1,0 +1,5 @@
+summary: Поле нельзя менять
+value:
+  code: INVALID_REQUEST
+  message: Поле status нельзя менять через PATCH. Статус меняется методами submit и decision.
+  traceId: trace-5b071

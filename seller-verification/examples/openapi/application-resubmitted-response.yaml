@@ -1,0 +1,18 @@
+summary: Повторная отправка после доработки
+value:
+  id: app-501
+  sellerId: seller-024
+  status: SUBMITTED
+  legalForm: IP
+  legalName: ИП Смирнова Анна Викторовна
+  inn: '771234567890'
+  contactEmail: anna.smirnova@example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3105
+  - type: ASSAY_REGISTRATION
+    fileId: file-3102
+  sellerComment: Загрузила свежую выписку ЕГРИП от 24.10.2026.
+  reviewComment: Лист записи ЕГРИП старше 30 дней. Загрузите свежую выписку.
+  createdAt: '2026-10-22T09:10:00Z'
+  updatedAt: '2026-10-24T08:20:00Z'

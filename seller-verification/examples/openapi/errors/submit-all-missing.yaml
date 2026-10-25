@@ -1,0 +1,5 @@
+summary: Нет обязательных документов
+value:
+  code: REQUIRED_DOCUMENTS_MISSING
+  message: 'Заявку app-507 нельзя отправить: приложите лист записи ЕГРИП или ЕГРЮЛ (REGISTRATION_RECORD) и подтверждение постановки на специальный учёт (ASSAY_REGISTRATION).'
+  traceId: trace-5b031

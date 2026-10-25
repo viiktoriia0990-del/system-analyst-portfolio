@@ -1,0 +1,18 @@
+type: object # Заголовки сообщения Kafka
+description: Заголовки, которые продюсер добавляет к каждому сообщению
+required:
+- content-type
+- event-type
+- correlation-id
+properties:
+  content-type:
+    type: string
+    description: Формат значения сообщения
+    const: application/json
+  event-type:
+    type: string
+    description: Тип события. Позволяет подписчику понять, что пришло, не разбирая payload
+    const: SellerApplicationStatusChanged
+  correlation-id:
+    type: string
+    description: Идентификатор исходного HTTP-запроса. Совпадает с correlationId в payload и traceId в логах

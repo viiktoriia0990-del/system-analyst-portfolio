@@ -1,0 +1,5 @@
+summary: Создать пытается юрист
+value:
+  code: FORBIDDEN
+  message: 'Создать заявку может только продавец. Ваша роль: LEGAL_OFFICER.'
+  traceId: trace-5b013

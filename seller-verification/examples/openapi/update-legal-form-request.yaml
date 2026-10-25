@@ -1,0 +1,8 @@
+summary: Сменить форму организации
+value:
+  legalForm: LLC
+  legalName: ООО «Котова Ювелир»
+  inn: '7723456789'
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3210

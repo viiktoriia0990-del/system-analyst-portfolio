@@ -1,0 +1,16 @@
+name: approved
+summary: Юридический отдел одобрил заявку
+headers:
+  content-type: application/json
+  event-type: SellerApplicationStatusChanged
+  correlation-id: trace-7f31c
+payload:
+  eventId: evt-20044
+  eventVersion: 1
+  occurredAt: '2026-10-24T10:05:00Z'
+  correlationId: trace-7f31c
+  applicationId: app-501
+  sellerId: seller-024
+  actorId: legal-007
+  previousStatus: SUBMITTED
+  newStatus: APPROVED

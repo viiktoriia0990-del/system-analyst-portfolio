@@ -1,0 +1,22 @@
+{
+  "name": "seller-verification",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API-контракт модуля заявок продавцов маркетплейса N: OpenAPI и AsyncAPI",
+  "scripts": {
+    "lint": "redocly lint openapi/openapi.yaml",
+    "build:redoc": "redocly build-docs openapi/openapi.yaml --output dist/index.html",
+    "build:asyncapi": "node scripts/build-asyncapi.mjs",
+    "build": "npm run build:redoc && npm run build:asyncapi",
+    "mock": "prism mock -h 0.0.0.0 -p 4010 openapi/openapi.yaml",
+    "demo": "node scripts/start-demo.mjs"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.43.2",
+    "@stoplight/prism-cli": "5.16.0",
+    "yaml": "2.9.0"
+  },
+  "engines": {
+    "node": ">=20.19.0 <25"
+  }
+}

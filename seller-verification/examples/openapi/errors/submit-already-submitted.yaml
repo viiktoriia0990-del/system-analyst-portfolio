@@ -1,0 +1,5 @@
+summary: Уже на проверке
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: Заявка app-501 уже на проверке (статус SUBMITTED). Повторно отправлять не нужно.
+  traceId: trace-5b032

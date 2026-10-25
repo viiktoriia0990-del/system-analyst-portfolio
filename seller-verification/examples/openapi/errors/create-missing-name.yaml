@@ -1,0 +1,5 @@
+summary: Не заполнено название
+value:
+  code: INVALID_REQUEST
+  message: Поле legalName обязательно.
+  traceId: trace-5b012

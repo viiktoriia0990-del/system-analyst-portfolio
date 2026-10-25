@@ -1,0 +1,5 @@
+summary: Неверный email
+value:
+  code: INVALID_REQUEST
+  message: 'Поле contactEmail: значение anna.smirnova@ не является email.'
+  traceId: trace-5b011

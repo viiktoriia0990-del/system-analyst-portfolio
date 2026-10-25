@@ -1,0 +1,21 @@
+name: SellerApplicationStatusChanged # Техническое имя сообщения
+title: Статус заявки изменился # Человекочитаемый заголовок
+summary: Событие о смене статуса заявки на верификацию
+contentType: application/json # Значение сообщения — JSON в UTF-8
+correlationId:
+  description: Связывает событие с исходным HTTP-запросом
+  location: $message.header#/correlation-id
+bindings:
+  kafka:
+    key: # Ключ сообщения Kafka
+      type: string
+      description: applicationId — все события одной заявки попадают в одну партицию и читаются по порядку
+    bindingVersion: 0.4.0
+headers:
+  $ref: '../../schemas/asyncapi/message-headers.yaml'
+payload:
+  $ref: '../../schemas/asyncapi/application-status-changed-payload.yaml'
+examples:
+- $ref: '../../examples/asyncapi/application-submitted.yaml'
+- $ref: '../../examples/asyncapi/application-needs-rework.yaml'
+- $ref: '../../examples/asyncapi/application-approved.yaml'

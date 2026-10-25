@@ -1,0 +1,5 @@
+summary: Заявка уже на проверке
+value:
+  code: APPLICATION_ALREADY_EXISTS
+  message: У вас уже есть заявка app-501 в статусе SUBMITTED. Дождитесь решения юридического отдела.
+  traceId: trace-5b014

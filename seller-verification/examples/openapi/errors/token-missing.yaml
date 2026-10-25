@@ -1,0 +1,5 @@
+summary: Токен не передан
+value:
+  code: UNAUTHORIZED
+  message: 'Требуется авторизация: передайте заголовок Authorization: Bearer <token>.'
+  traceId: trace-5b050

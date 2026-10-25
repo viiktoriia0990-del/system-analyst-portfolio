@@ -1,0 +1,5 @@
+summary: В архиве
+value:
+  code: APPLICATION_ARCHIVED
+  message: Заявка app-504 в архиве. Чтобы отправить её на проверку, сначала восстановите заявку.
+  traceId: trace-5b035

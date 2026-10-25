@@ -1,0 +1,5 @@
+summary: Чужая заявка
+value:
+  code: FORBIDDEN
+  message: Заявка app-501 принадлежит другому продавцу.
+  traceId: trace-5b020

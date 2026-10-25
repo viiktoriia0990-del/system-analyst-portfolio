@@ -1,0 +1,5 @@
+summary: Заявка ещё черновик
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: Заявка app-507 ещё не отправлена на проверку (статус DRAFT). Решение можно принять только по заявке в статусе SUBMITTED.
+  traceId: trace-5b043

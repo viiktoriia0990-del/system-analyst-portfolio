@@ -1,0 +1,11 @@
+summary: Заявка ИП с документами
+value:
+  legalForm: IP
+  legalName: ИП Смирнова Анна Викторовна
+  inn: '771234567890'
+  contactEmail: anna.smirnova@example.com
+  documents:
+  - type: REGISTRATION_RECORD
+    fileId: file-3101
+  - type: ASSAY_REGISTRATION
+    fileId: file-3102

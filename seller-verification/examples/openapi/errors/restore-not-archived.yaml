@@ -1,0 +1,5 @@
+summary: Не в архиве
+value:
+  code: APPLICATION_NOT_ARCHIVED
+  message: Заявка app-507 не в архиве, восстанавливать нечего.
+  traceId: trace-5b083

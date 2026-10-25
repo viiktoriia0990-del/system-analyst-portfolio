@@ -1,0 +1,29 @@
+type: object
+description: Данные для создания заявки
+additionalProperties: false
+required:
+- legalForm
+- legalName
+- inn
+- contactEmail
+properties:
+  legalForm:
+    $ref: ./legal-form.yaml
+  legalName:
+    type: string
+    minLength: 3
+    maxLength: 255
+    example: ИП Смирнова Анна Викторовна
+  inn:
+    type: string
+    pattern: '^(\d{10}|\d{12})$'
+    example: '771234567890'
+  contactEmail:
+    type: string
+    format: email
+    example: anna.smirnova@example.com
+  documents:
+    type: array
+    description: Документы можно приложить сразу или позже, до отправки на проверку
+    items:
+      $ref: ./document.yaml

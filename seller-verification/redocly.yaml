@@ -1,0 +1,9 @@
+extends: []
+rules:
+  struct: error
+  no-invalid-media-type-examples: error
+  operation-operationId-unique: error
+  path-parameters-defined: error
+  security-defined: error
+openapi: # Настройки отображения документации ReDoc
+  showObjectSchemaExamples: true # Показывать example у каждого поля в схемах

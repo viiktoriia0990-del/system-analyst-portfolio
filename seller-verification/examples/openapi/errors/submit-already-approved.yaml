@@ -1,0 +1,5 @@
+summary: Уже одобрена
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: Заявка app-495 уже одобрена (статус APPROVED). Отправка недоступна.
+  traceId: trace-5b033

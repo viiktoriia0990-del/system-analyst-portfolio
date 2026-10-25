@@ -1,0 +1,5 @@
+summary: Решение уже принято
+value:
+  code: INVALID_STATUS_TRANSITION
+  message: По заявке app-495 решение уже принято (статус APPROVED).
+  traceId: trace-5b044

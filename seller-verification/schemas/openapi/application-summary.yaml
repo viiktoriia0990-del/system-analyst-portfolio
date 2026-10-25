@@ -1,0 +1,42 @@
+type: object # Краткая карточка заявки для списка
+description: Заявка в списке. Без документов и комментариев — их отдаёт GET /seller-applications/{applicationId}
+additionalProperties: false
+required:
+- id
+- sellerId
+- status
+- legalForm
+- legalName
+- inn
+- createdAt
+- updatedAt
+properties:
+  id:
+    type: string
+    example: app-501
+  sellerId:
+    type: string
+    example: seller-024
+  status:
+    $ref: ./application-status.yaml
+  legalForm:
+    $ref: ./legal-form.yaml
+  legalName:
+    type: string
+    example: ИП Смирнова Анна Викторовна
+  inn:
+    type: string
+    example: '771234567890'
+  archivedAt:
+    type: string
+    format: date-time
+    description: Когда заявку перенесли в архив. Поля нет, если заявка не в архиве
+    example: '2026-10-24T10:05:00Z'
+  createdAt:
+    type: string
+    format: date-time
+    example: '2026-10-22T09:10:00Z'
+  updatedAt:
+    type: string
+    format: date-time
+    example: '2026-10-22T09:15:00Z'

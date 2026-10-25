@@ -1,0 +1,32 @@
+summary: Очередь юриста
+value:
+  items:
+  - id: app-498
+    sellerId: seller-019
+    status: SUBMITTED
+    legalForm: LLC
+    legalName: ООО «Серебряная нить»
+    inn: '7701234567'
+    createdAt: '2026-10-21T15:40:00Z'
+    updatedAt: '2026-10-21T16:02:00Z'
+  - id: app-501
+    sellerId: seller-024
+    status: SUBMITTED
+    legalForm: IP
+    legalName: ИП Смирнова Анна Викторовна
+    inn: '771234567890'
+    createdAt: '2026-10-22T09:10:00Z'
+    updatedAt: '2026-10-22T09:15:00Z'
+  - id: app-505
+    sellerId: seller-029
+    status: SUBMITTED
+    legalForm: IP
+    legalName: ИП Орлов Дмитрий Андреевич
+    inn: '773456789012'
+    createdAt: '2026-10-22T11:00:00Z'
+    updatedAt: '2026-10-22T11:10:00Z'
+  pagination:
+    page: 1
+    size: 3
+    totalItems: 3
+    totalPages: 1

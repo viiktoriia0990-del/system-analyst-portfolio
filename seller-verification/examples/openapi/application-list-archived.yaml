@@ -1,0 +1,35 @@
+summary: Заявки в архиве
+value:
+  items:
+  - id: app-504
+    sellerId: seller-032
+    status: DRAFT
+    legalForm: IP
+    legalName: ИП Белова Мария Игоревна
+    inn: '774567890123'
+    archivedAt: '2026-10-24T10:05:00Z'
+    createdAt: '2026-10-22T13:00:00Z'
+    updatedAt: '2026-10-24T10:05:00Z'
+  - id: app-503
+    sellerId: seller-031
+    status: DRAFT
+    legalForm: IP
+    legalName: ИП Котова Елена Сергеевна
+    inn: '772345678901'
+    archivedAt: '2026-10-22T14:15:00Z'
+    createdAt: '2026-10-20T10:00:00Z'
+    updatedAt: '2026-10-22T14:15:00Z'
+  - id: app-492
+    sellerId: seller-027
+    status: REJECTED
+    legalForm: LLC
+    legalName: ООО «Аурум»
+    inn: '7709876543'
+    archivedAt: '2026-10-23T09:30:00Z'
+    createdAt: '2026-10-19T11:30:00Z'
+    updatedAt: '2026-10-23T09:30:00Z'
+  pagination:
+    page: 1
+    size: 3
+    totalItems: 3
+    totalPages: 1

@@ -1,0 +1,39 @@
+asyncapi: 2.6.0 # Версия спецификации AsyncAPI
+info:
+  title: События заявок продавцов
+  description: >-
+    Продюсер: Seller Verification Service — сервис, который реализует API заявок
+    и после каждой смены статуса публикует событие в Kafka.
+    Подписчик: Notification Service — читает событие и отправляет продавцу письмо о новом статусе.
+  version: 1.0.0
+servers: # Брокер сообщений
+  local:
+    url: localhost:9092 # Адрес локального брокера Kafka
+    protocol: kafka
+    description: Локальный брокер Kafka
+defaultContentType: application/json
+channels:
+  seller-application.status-changed.v1: # Канал = топик Kafka
+    description: Топик со сменами статусов заявок на верификацию
+    bindings:
+      kafka:
+        topic: seller-application.status-changed.v1
+        partitions: 3
+        replicas: 1
+        bindingVersion: 0.4.0
+    subscribe: # В AsyncAPI 2.x subscribe = сервис публикует, а другие подписываются
+      operationId: sellerApplicationStatusChanged
+      summary: Статус заявки изменился
+      bindings:
+        kafka:
+          groupId: # Группа консьюмеров подписчика
+            type: string
+            enum:
+            - notification-service
+          clientId: # Идентификатор продюсера
+            type: string
+            enum:
+            - seller-verification-service
+          bindingVersion: 0.4.0
+      message:
+        $ref: './messages/application-status-changed.yaml'

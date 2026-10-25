@@ -1,0 +1,23 @@
+type: object
+description: Решение юридического отдела по заявке
+additionalProperties: false
+required:
+- decision
+properties:
+  decision:
+    type: string
+    enum:
+    - APPROVED
+    - REJECTED
+    - NEEDS_REWORK
+    x-enumDescriptions:
+      APPROVED: Одобрить — продавец получает доступ к продажам
+      REJECTED: Отклонить — нужен комментарий с причиной
+      NEEDS_REWORK: Вернуть на доработку — нужен комментарий, что исправить
+    example: NEEDS_REWORK
+  comment:
+    type: string
+    description: Причина решения для продавца. Обязательна при `REJECTED` и `NEEDS_REWORK`
+    minLength: 1
+    maxLength: 2000
+    example: Лист записи ЕГРИП старше 30 дней. Загрузите свежую выписку.

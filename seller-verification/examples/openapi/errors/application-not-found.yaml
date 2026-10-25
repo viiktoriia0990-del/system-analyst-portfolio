@@ -1,0 +1,5 @@
+summary: Заявка не найдена
+value:
+  code: APPLICATION_NOT_FOUND
+  message: Заявка app-999 не найдена.
+  traceId: trace-5b060
