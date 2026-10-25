@@ -119,36 +119,76 @@
 
 ### Альтернативные сценарии и обработка ошибок
 
-**Альтернативный сценарий 1. ЮKassa не создала платёж.** Начинается на шаге 5.
+**Альтернативный сценарий 1. ЮKassa временно недоступна.** Начинается на шаге 5.
 
-1. ЮKassa не ответила за 10 секунд, вернула HTTP 500, HTTP 401 (неверный ключ магазина) или HTTP 400 (ошибка в маппинге данных).
-2. При таймауте или HTTP 500 Backend МП повторяет запрос один раз с тем же `Idempotence-Key`. Если ответ получен, переход к шагу 6 основного сценария.
-3. При HTTP 401, HTTP 400 или повторной неудаче Backend МП пишет в лог: таймаут и HTTP 500 с приоритетом «предупреждение», HTTP 401 и HTTP 400 с приоритетом «критическая».
-4. Backend МП возвращает Frontend HTTP 500 «Сервис временно недоступен. Попробуйте ещё раз». Всё ожидание укладывается в 25 секунд, меньше таймаута Frontend в 30 секунд.
-5. Возврат к шагу 2 основного сценария. Запрос уйдёт с тем же `Idempotence-Key`, поэтому если платёж в ЮKassa уже создан, второй не появится.
+1. ЮKassa не ответила за 10 секунд или вернула HTTP 500.
+2. Backend МП повторяет запрос один раз с тем же `Idempotence-Key`. Благодаря этому ключу ЮKassa не создаст второй платёж, если первый всё-таки прошёл.
+3. Если ответ получен, переход к шагу 6 основного сценария.
+4. Если ответа снова нет, Backend МП пишет в лог с приоритетом «предупреждение» и возвращает Frontend HTTP 500. Всё ожидание укладывается в 25 секунд, меньше таймаута Frontend в 30 секунд.
 
-**Альтернативный сценарий 2. Банк отклонил оплату.** Начинается на шаге 11.
+   ```json
+   { "message": "Сервис временно недоступен. Попробуйте ещё раз" }
+   ```
 
-1. ЮKassa присылает уведомление `payment.canceled` с причиной в `cancellation_details.reason`.
+5. Frontend показывает текст из ответа. Возврат к шагу 2 основного сценария.
+
+**Альтернативный сценарий 2. ЮKassa отклонила запрос.** Начинается на шаге 5.
+
+1. ЮKassa вернула HTTP 401 (неверный ключ магазина) или HTTP 400 (ошибка в данных запроса).
+2. Backend МП не повторяет запрос и пишет в лог с приоритетом «критическая».
+3. Backend МП возвращает Frontend HTTP 500.
+
+   ```json
+   { "message": "Сервис временно недоступен. Попробуйте позже" }
+   ```
+
+4. Frontend показывает текст из ответа. Сценарий завершается.
+
+**Альтернативный сценарий 3. Банк отклонил оплату.** Начинается на шаге 11.
+
+1. ЮKassa присылает уведомление `payment.canceled` с причиной отказа.
+
+   ```json
+   {
+     "type": "notification",
+     "event": "payment.canceled",
+     "object": {
+       "id": "2e8a9f7c-000f-5000-9000-1b6c4a2d3e4f",
+       "status": "canceled",
+       "paid": false,
+       "cancellation_details": { "party": "payment_network", "reason": "insufficient_funds" },
+       "metadata": { "order_id": "8f3c1e2a-5b7d-4e1f-9a2c-3d4e5f6a7b8c" }
+     }
+   }
+   ```
+
 2. Backend МП проверяет уведомление, как на шагах 12.1 и 12.2.
-3. Backend МП снимает резерв товаров, возвращает заказ в `new` и сохраняет причину отказа.
-4. Backend МП отвечает ЮKassa HTTP 200.
-5. Frontend показывает причину отказа и кнопку «Повторить оплату».
+3. Backend МП снимает резерв товаров, возвращает заказ в `new`, сохраняет причину отказа и отвечает ЮKassa HTTP 200.
+4. Frontend запрашивает статус `GET /orders/{orderId}/payment` и получает:
+
+   ```json
+   {
+     "orderId": "8f3c1e2a-5b7d-4e1f-9a2c-3d4e5f6a7b8c",
+     "status": "new",
+     "payment": { "status": "canceled", "cancelReason": "insufficient_funds" }
+   }
+   ```
+
+5. Frontend показывает «Недостаточно средств на карте» и кнопку «Повторить оплату».
 6. Возврат к шагу 2 основного сценария. Повторная оплата идёт с новым `Idempotence-Key`.
 
-**Альтернативный сценарий 3. Покупатель не оплатил заказ за 30 минут.** Начинается на шаге 10.
+**Альтернативный сценарий 4. Покупатель не оплатил заказ за 30 минут.** Начинается на шаге 10.
 
 1. Покупатель закрыл платёжную форму, уведомление от ЮKassa не приходит.
 2. Через 30 минут фоновая задача Backend МП снимает резерв товаров и переводит заказ в `cancelled`.
 3. Если оплата всё же придёт позже, Backend МП не меняет статус заказа, пишет в лог с приоритетом «предупреждение» и создаёт задачу администратору на возврат денег через личный кабинет ЮKassa. ⚠️ TBD: автоматический возврат внесён в Backlog.
 4. Сценарий завершается.
 
-**Альтернативный сценарий 4. Уведомление от ЮKassa не пришло.** Начинается на шаге 12.
+**Альтернативный сценарий 5. Уведомление от ЮKassa не пришло.** Начинается на шаге 12.
 
 1. Покупатель оплатил заказ, но уведомление до Backend МП не дошло.
 2. Раз в 5 минут фоновая задача Backend МП запрашивает `GET /v3/payments/{id}` по заказам в статусе `payment_pending`.
-3. Backend МП обрабатывает ответ как уведомление.
-4. Переход к шагу 12.3 основного сценария.
+3. Backend МП обрабатывает ответ как уведомление: при `"status": "succeeded"` переход к шагу 12.3 основного сценария, при `"status": "canceled"` к шагу 3 альтернативного сценария 3.
 
 ⚠️ TBD: остальные сценарии (ошибки ввода данных, повторное и поддельное уведомление, нет связи с Backend МП) описываются отдельно.
 
@@ -160,63 +200,40 @@
 
 ## Маппинг данных
 
-Поля МП указаны как `таблица.поле` в БД МП. Используются три таблицы:
+Поля МП указаны как `таблица.поле` в БД МП: `orders` (заказ), `sellers` (продавец), `payments` (попытка оплаты).
 
-- `orders`: заказ (сумма, номер, продавец, данные получателя, статус);
-- `sellers`: продавец (юридическое наименование, магазин в ЮKassa, ставка комиссии);
-- `payments`: попытка оплаты заказа (ключ идемпотентности, идентификатор и статус платежа в ЮKassa).
+### Запрос МП → ЮKassa: создание платежа `POST /v3/payments` (шаг 5)
 
-### API МП → БД МП: данные получателя (шаги 3 и 4)
-
-| Поле запроса `POST /orders/{orderId}/payments` | Поле МП | Правило |
-| --- | --- | --- |
-| `recipient.fullName` | `orders.recipient_full_name` | обязательное, до 255 символов |
-| `recipient.phone` | `orders.recipient_phone` | обязательное, формат +7XXXXXXXXXX |
-| `recipient.email` | `orders.recipient_email` | обязательное, формат email |
-
-В ЮKassa эти поля не передаются, они нужны для письма покупателю.
-
-### МП → ЮKassa: создание платежа `POST /v3/payments` (шаг 5)
-
-| Поле ЮKassa | Поле МП | Правило | Пример |
+| Поле ЮKassa | Поле в БД МП | Правило | Пример |
 | --- | --- | --- | --- |
-| заголовок `Idempotence-Key` | `payments.idempotence_key` | UUID, создаётся на шаге 4.5 | `6b1f0c2e-7d3a-4f5b-8e9c-0a1b2c3d4e5f` |
+| заголовок `Idempotence-Key` | `payments.idempotence_key` | UUID, создаётся на шаге 4.5 | `6b1f0c2e-7d3a-…` |
 | `amount.value` | `orders.total_amount` | строка с двумя знаками после точки | `"17000.00"` |
-| `amount.currency` | нет, константа | всегда `RUB` | `"RUB"` |
-| `capture` | нет, константа | всегда `true` | `true` |
-| `confirmation.type` | нет, константа | всегда `redirect` | `"redirect"` |
+| `amount.currency` | константа | всегда `RUB` | `"RUB"` |
+| `capture` | константа | всегда `true` | `true` |
+| `confirmation.type` | константа | всегда `redirect` | `"redirect"` |
 | `confirmation.return_url` | `orders.id` | `https://mp.example/orders/{orders.id}/payment-result` | `https://mp.example/orders/8f3c1e2a-…/payment-result` |
-| `description` | `orders.number` | «Заказ № » + `orders.number` | `"Заказ № 10452"` |
+| `description` | `orders.number` | «Заказ № » + номер | `"Заказ № 10452"` |
 | `metadata.order_id` | `orders.id` | без изменений | `"8f3c1e2a-…"` |
 | `transfers[0].account_id` | `sellers.yookassa_account_id` | продавец по `orders.seller_id` | `"123456"` |
 | `transfers[0].amount.value` | `orders.total_amount` | как `amount.value` (см. особенность 3) | `"17000.00"` |
-| `transfers[0].platform_fee_amount.value` | `payments.platform_fee` | `orders.total_amount` × `sellers.commission_rate`, округление до копеек. ⚠️ TBD: тариф и кто платит комиссию ЮKassa | `"1700.00"` |
-| `transfers[0].description` | `sellers.legal_name`, `orders.total_amount`, `orders.number` | «{наименование} {сумма} руб., заказ № {номер}», ЮKassa требует наименование и сумму | `"ИП Смирнова А. В. 17000 руб., заказ № 10452"` |
+| `transfers[0].platform_fee_amount.value` | `payments.platform_fee` | `orders.total_amount` × `sellers.commission_rate`, округление до копеек. ⚠️ TBD: тариф | `"1700.00"` |
+| `transfers[0].description` | `sellers.legal_name`, `orders.total_amount`, `orders.number` | наименование продавца, сумма и номер заказа; ЮKassa требует наименование и сумму | `"ИП Смирнова А. В. 17000 руб., заказ № 10452"` |
 
-### ЮKassa → МП: ответ и уведомление (шаги 6, 7 и 12)
+### Ответ и уведомление ЮKassa → МП (шаги 6, 7 и 12)
 
-| Поле ЮKassa | Поле МП | Правило |
-| --- | --- | --- |
-| `id` | `payments.external_id` | сохраняется на шаге 7 |
-| `confirmation.confirmation_url` | `payments.confirmation_url` | сохраняется на шаге 7 |
-| `status` | `payments.status`, `orders.status` | `pending` → заказ `payment_pending`, `succeeded` → `paid`, `canceled` → `new` |
-| `metadata.order_id` | `orders.id` | по нему ищется заказ при обработке уведомления |
-| `amount.value` | `orders.total_amount` | сверяется; при расхождении запись в лог «критическая», статус не меняется |
-| `captured_at` | `payments.paid_at` | сохраняется при `succeeded` |
-| `cancellation_details.reason` | `payments.cancel_reason` | сохраняется при `canceled`, показывается покупателю |
+Поля приходят в ответе на `POST /v3/payments` и в уведомлении о результате оплаты. Где именно, указано в колонке «Где приходит».
 
-### БД МП → API МП: ответ Frontend (шаги 8 и 13)
+| Поле ЮKassa | Где приходит | Поле в БД МП | Правило | Пример |
+| --- | --- | --- | --- | --- |
+| `id` | ответ | `payments.external_id` | сохраняется на шаге 7 | `"2e8a9f7c-000f-…"` |
+| `confirmation.confirmation_url` | ответ | `payments.confirmation_url` | сохраняется на шаге 7, отдаётся Frontend | `"https://yoomoney.ru/checkout/…"` |
+| `status` | ответ и уведомление | `payments.status`, `orders.status` | `pending` → заказ `payment_pending`, `succeeded` → `paid`, `canceled` → `new` | `"succeeded"` |
+| `metadata.order_id` | уведомление | `orders.id` | по нему ищется заказ | `"8f3c1e2a-…"` |
+| `amount.value` | уведомление | `orders.total_amount` | сверяется; при расхождении лог «критическая», статус не меняется | `"17000.00"` |
+| `captured_at` | уведомление | `payments.paid_at` | сохраняется при `succeeded` | `"2026-10-22T09:48:40.000Z"` |
+| `cancellation_details.reason` | уведомление | `payments.cancel_reason` | сохраняется при `canceled`, показывается покупателю | `"insufficient_funds"` |
 
-| Поле ответа API МП | Поле МП |
-| --- | --- |
-| `orderId` | `orders.id` |
-| `orderNumber` | `orders.number` |
-| `status` | `orders.status` |
-| `amount.value` | `orders.total_amount` |
-| `payment.id` | `payments.external_id` |
-| `payment.status` | `payments.status` |
-| `payment.confirmationUrl` | `payments.confirmation_url` |
-| `payment.paidAt` | `payments.paid_at` |
+ФИО, телефон и email получателя из запроса `POST /orders/{orderId}/payments` сохраняются в `orders.recipient_full_name`, `orders.recipient_phone` и `orders.recipient_email`. В ЮKassa они не передаются, они нужны для письма покупателю.
 
 ## Примеры запросов и ответов
 
@@ -345,7 +362,7 @@ Content-Type: application/json
 
 Ответ Backend МП: HTTP 200 без тела.
 
-При отказе банка (альтернативный сценарий 2) приходит `event: payment.canceled`, а в `object.cancellation_details` указана причина, например `"reason": "insufficient_funds"`.
+При отказе банка (альтернативный сценарий 3) приходит `event: payment.canceled`, а в `object.cancellation_details` указана причина, например `"reason": "insufficient_funds"`.
 
 ### API МП: статус оплаты (шаг 13)
 
