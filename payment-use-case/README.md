@@ -237,7 +237,7 @@
 
 ## Примеры запросов и ответов
 
-Значения в примерах условные. Суммы в API ЮKassa передаются строкой с двумя знаками после точки.
+Значения в примерах условные. Здесь только запросы и ответы, которые формирует МП. Ответ ЮKassa и уведомление о результате оплаты описаны в [документации ЮKassa](https://yookassa.ru/developers/api), а поля, которые из них читает МП, перечислены в разделе «Маппинг данных».
 
 ### API МП: создание платежа (шаг 3)
 
@@ -273,15 +273,7 @@ Content-Type: application/json
 }
 ```
 
-Ответ HTTP 409, если заказ уже оплачен:
-
-```json
-{ "message": "Заказ уже оплачен" }
-```
-
-### ЮKassa: создание платежа (шаги 5 и 6)
-
-Запрос:
+### ЮKassa: создание платежа (шаг 5)
 
 ```http
 POST https://api.yookassa.ru/v3/payments
@@ -308,61 +300,6 @@ Content-Type: application/json
   ]
 }
 ```
-
-Ответ HTTP 200:
-
-```json
-{
-  "id": "2e8a9f7c-000f-5000-9000-1b6c4a2d3e4f",
-  "status": "pending",
-  "paid": false,
-  "amount": { "value": "17000.00", "currency": "RUB" },
-  "confirmation": {
-    "type": "redirect",
-    "confirmation_url": "https://yoomoney.ru/checkout/payments/v2/contract?orderId=2e8a9f7c-000f-5000-9000-1b6c4a2d3e4f"
-  },
-  "created_at": "2026-10-22T09:46:12.000Z",
-  "description": "Заказ № 10452",
-  "metadata": { "order_id": "8f3c1e2a-5b7d-4e1f-9a2c-3d4e5f6a7b8c" },
-  "transfers": [
-    {
-      "account_id": "123456",
-      "amount": { "value": "17000.00", "currency": "RUB" },
-      "platform_fee_amount": { "value": "1700.00", "currency": "RUB" },
-      "status": "pending"
-    }
-  ],
-  "test": false
-}
-```
-
-### ЮKassa: уведомление о результате платежа (шаг 11)
-
-```http
-POST https://mp.example/webhooks/yookassa
-Content-Type: application/json
-
-{
-  "type": "notification",
-  "event": "payment.succeeded",
-  "object": {
-    "id": "2e8a9f7c-000f-5000-9000-1b6c4a2d3e4f",
-    "status": "succeeded",
-    "paid": true,
-    "amount": { "value": "17000.00", "currency": "RUB" },
-    "captured_at": "2026-10-22T09:48:40.000Z",
-    "payment_method": {
-      "type": "bank_card",
-      "card": { "first6": "555555", "last4": "4444", "card_type": "MasterCard" }
-    },
-    "metadata": { "order_id": "8f3c1e2a-5b7d-4e1f-9a2c-3d4e5f6a7b8c" }
-  }
-}
-```
-
-Ответ Backend МП: HTTP 200 без тела.
-
-При отказе банка (альтернативный сценарий 3) приходит `event: payment.canceled`, а в `object.cancellation_details` указана причина, например `"reason": "insufficient_funds"`.
 
 ### API МП: статус оплаты (шаг 13)
 
