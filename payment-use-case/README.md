@@ -182,36 +182,63 @@
 
 ## Маппинг данных
 
-### Запрос МП → ЮKassa: создание платежа `POST /v3/payments` (шаг 5)
+Поля МП указаны как `таблица.поле` в БД МП. Используются три таблицы:
 
-| Поле ЮKassa | Источник в МП | Пример |
+- `orders`: заказ (сумма, номер, продавец, данные получателя, статус);
+- `sellers`: продавец (юридическое наименование, магазин в ЮKassa, ставка комиссии);
+- `payments`: попытка оплаты заказа (ключ идемпотентности, идентификатор и статус платежа в ЮKassa).
+
+### API МП → БД МП: данные получателя (шаги 3 и 4)
+
+| Поле запроса `POST /orders/{orderId}/payments` | Поле МП | Правило |
 | --- | --- | --- |
-| заголовок `Idempotence-Key` | ключ попытки оплаты, сгенерирован на шаге 4.5 | `6b1f0c2e-7d3a-4f5b-8e9c-0a1b2c3d4e5f` |
-| `amount.value` | сумма заказа: товары и доставка | `"17000.00"` |
-| `amount.currency` | константа | `"RUB"` |
-| `capture` | константа: деньги списываются сразу после оплаты | `true` |
-| `confirmation.type` | константа | `"redirect"` |
-| `confirmation.return_url` | адрес страницы результата оплаты в МП с `orderId` | `https://mp.example/orders/{orderId}/payment-result` |
-| `description` | «Заказ № » + номер заказа | `"Заказ № 10452"` |
-| `metadata.order_id` | идентификатор заказа | `"8f3c1e2a-…"` |
-| `transfers[0].account_id` | `account_id` магазина продавца в ЮKassa из профиля продавца | `"123456"` |
-| `transfers[0].amount` | сумма заказа (см. особенность 3) | `"17000.00"` |
-| `transfers[0].platform_fee_amount` | комиссия МП: сумма заказа × ставка комиссии. ⚠️ TBD: тариф и кто платит комиссию ЮKassa | `"1700.00"` |
-| `transfers[0].description` | юридическое наименование продавца, сумма перевода и номер заказа. ЮKassa требует указывать наименование и сумму | `"ИП Смирнова А. В. 17000 руб., заказ № 10452"` |
+| `recipient.fullName` | `orders.recipient_full_name` | обязательное, до 255 символов |
+| `recipient.phone` | `orders.recipient_phone` | обязательное, формат +7XXXXXXXXXX |
+| `recipient.email` | `orders.recipient_email` | обязательное, формат email |
 
-Поля ФИО, телефон и email получателя в ЮKassa не передаются: они сохраняются в заказе и нужны для письма покупателю.
+В ЮKassa эти поля не передаются, они нужны для письма покупателю.
 
-### Ответ и уведомление ЮKassa → МП (шаги 6, 7, 12)
+### МП → ЮKassa: создание платежа `POST /v3/payments` (шаг 5)
 
-| Поле ЮKassa | Куда записывается в МП | Когда |
+| Поле ЮKassa | Поле МП | Правило | Пример |
+| --- | --- | --- | --- |
+| заголовок `Idempotence-Key` | `payments.idempotence_key` | UUID, создаётся на шаге 4.5 | `6b1f0c2e-7d3a-4f5b-8e9c-0a1b2c3d4e5f` |
+| `amount.value` | `orders.total_amount` | строка с двумя знаками после точки | `"17000.00"` |
+| `amount.currency` | нет, константа | всегда `RUB` | `"RUB"` |
+| `capture` | нет, константа | всегда `true` | `true` |
+| `confirmation.type` | нет, константа | всегда `redirect` | `"redirect"` |
+| `confirmation.return_url` | `orders.id` | `https://mp.example/orders/{orders.id}/payment-result` | `https://mp.example/orders/8f3c1e2a-…/payment-result` |
+| `description` | `orders.number` | «Заказ № » + `orders.number` | `"Заказ № 10452"` |
+| `metadata.order_id` | `orders.id` | без изменений | `"8f3c1e2a-…"` |
+| `transfers[0].account_id` | `sellers.yookassa_account_id` | продавец по `orders.seller_id` | `"123456"` |
+| `transfers[0].amount.value` | `orders.total_amount` | как `amount.value` (см. особенность 3) | `"17000.00"` |
+| `transfers[0].platform_fee_amount.value` | `payments.platform_fee` | `orders.total_amount` × `sellers.commission_rate`, округление до копеек. ⚠️ TBD: тариф и кто платит комиссию ЮKassa | `"1700.00"` |
+| `transfers[0].description` | `sellers.legal_name`, `orders.total_amount`, `orders.number` | «{наименование} {сумма} руб., заказ № {номер}», ЮKassa требует наименование и сумму | `"ИП Смирнова А. В. 17000 руб., заказ № 10452"` |
+
+### ЮKassa → МП: ответ и уведомление (шаги 6, 7 и 12)
+
+| Поле ЮKassa | Поле МП | Правило |
 | --- | --- | --- |
-| `id` | идентификатор платежа в ЮKassa в заказе, `payment.id` в API МП | шаг 7 |
-| `confirmation.confirmation_url` | ссылка на платёжную форму в заказе, `payment.confirmationUrl` в API МП | шаг 7 |
-| `status` | статус платежа в заказе и статус заказа по таблице статусов | шаги 7, 12 |
-| `metadata.order_id` | по нему Backend МП находит заказ при обработке уведомления | шаг 12 |
-| `amount.value` | сверяется с суммой заказа, при расхождении запись в лог «критическая», статус не меняется | шаг 12 |
-| `captured_at` | дата оплаты в заказе, `payment.paidAt` в API МП | шаг 12 |
-| `cancellation_details.reason` | причина отказа, показывается покупателю | ветка 10Б |
+| `id` | `payments.external_id` | сохраняется на шаге 7 |
+| `confirmation.confirmation_url` | `payments.confirmation_url` | сохраняется на шаге 7 |
+| `status` | `payments.status`, `orders.status` | `pending` → заказ `payment_pending`, `succeeded` → `paid`, `canceled` → `new` |
+| `metadata.order_id` | `orders.id` | по нему ищется заказ при обработке уведомления |
+| `amount.value` | `orders.total_amount` | сверяется; при расхождении запись в лог «критическая», статус не меняется |
+| `captured_at` | `payments.paid_at` | сохраняется при `succeeded` |
+| `cancellation_details.reason` | `payments.cancel_reason` | сохраняется при `canceled`, показывается покупателю |
+
+### БД МП → API МП: ответ Frontend (шаги 8 и 13)
+
+| Поле ответа API МП | Поле МП |
+| --- | --- |
+| `orderId` | `orders.id` |
+| `orderNumber` | `orders.number` |
+| `status` | `orders.status` |
+| `amount.value` | `orders.total_amount` |
+| `payment.id` | `payments.external_id` |
+| `payment.status` | `payments.status` |
+| `payment.confirmationUrl` | `payments.confirmation_url` |
+| `payment.paidAt` | `payments.paid_at` |
 
 ## Примеры запросов и ответов
 
