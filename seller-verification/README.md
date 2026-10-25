@@ -27,15 +27,21 @@ POST /seller-applications/{applicationId}/decision     Принять решен
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DRAFT: #160;#160;создать#160;#160;
-    DRAFT --> SUBMITTED: #160;#160;отправить#160;#160;
-    SUBMITTED --> APPROVED: #160;#160;одобрить#160;#160;
-    SUBMITTED --> REJECTED: #160;#160;отклонить#160;#160;
-    SUBMITTED --> NEEDS_REWORK: #160;#160;на доработку#160;#160;
-    NEEDS_REWORK --> SUBMITTED: #160;#160;повторно#160;#160;
+    [*] --> DRAFT: create
+    DRAFT --> SUBMITTED: submit
+    SUBMITTED --> APPROVED: approve
+    SUBMITTED --> REJECTED: reject
+    SUBMITTED --> NEEDS_REWORK: rework
+    NEEDS_REWORK --> SUBMITTED: resubmit
     APPROVED --> [*]
     REJECTED --> [*]
 ```
+
+Подписи на стрелках соответствуют методам API:
+
+- `create`: `POST /seller-applications`;
+- `submit` и `resubmit`: `POST /seller-applications/{applicationId}/submit`;
+- `approve`, `reject`, `rework`: `POST /seller-applications/{applicationId}/decision` с решением `APPROVED`, `REJECTED` или `NEEDS_REWORK`.
 
 Правила, зашитые в контракт:
 
@@ -163,14 +169,14 @@ Authorization: Bearer <токен юриста>
 
 ```mermaid
 flowchart LR
-    U["Продавец или юрист"] -- "#160;#160;HTTP#160;#160;" --> P["Сервис заявок"]
-    P -- "#160;#160;событие#160;#160;" --> T[("Kafka")]
-    T -- "#160;#160;событие#160;#160;" --> C["Сервис уведомлений"]
-    C -- "#160;#160;HTTP: email#160;#160;" --> P
-    C -- "#160;#160;письмо#160;#160;" --> U
+    U["Продавец или юрист"] -- "HTTP" --> P["Сервис заявок"]
+    P -- "event" --> T[("Kafka")]
+    T -- "event" --> C["Сервис уведомлений"]
+    C -- "HTTP GET" --> P
+    C -- "email" --> U
 ```
 
-Сервис заявок здесь Seller Verification Service (продюсер), сервис уведомлений Notification Service (подписчик). Топик, ключ сообщения и группа подписчика указаны в таблице ниже.
+Сервис заявок здесь Seller Verification Service (продюсер), сервис уведомлений Notification Service (подписчик). Сервис заявок публикует событие (event) в Kafka, сервис уведомлений читает его, запрашивает email продавца по HTTP и отправляет письмо. Топик, ключ сообщения и группа подписчика указаны в таблице ниже.
 
 | | Значение |
 |---|---|
