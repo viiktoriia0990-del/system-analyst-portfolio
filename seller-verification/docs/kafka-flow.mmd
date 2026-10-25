@@ -1,6 +1,0 @@
-flowchart LR
-    U["Продавец или юрист"] --> P["Seller Verification Service<br/>продюсер"]
-    P --> T[("Kafka<br/>seller-application.status-changed.v1")]
-    T --> C["Notification Service<br/>подписчик"]
-    C --> P
-    C --> U
