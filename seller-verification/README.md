@@ -27,21 +27,21 @@ POST /seller-applications/{applicationId}/decision     Принять решен
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DRAFT: create
-    DRAFT --> SUBMITTED: submit
-    SUBMITTED --> APPROVED: approve
-    SUBMITTED --> REJECTED: reject
-    SUBMITTED --> NEEDS_REWORK: rework
-    NEEDS_REWORK --> SUBMITTED: resubmit
+    [*] --> DRAFT
+    DRAFT --> SUBMITTED
+    SUBMITTED --> APPROVED
+    SUBMITTED --> REJECTED
+    SUBMITTED --> NEEDS_REWORK
+    NEEDS_REWORK --> SUBMITTED
     APPROVED --> [*]
     REJECTED --> [*]
 ```
 
-Подписи на стрелках соответствуют методам API:
+Переходы между статусами выполняют методы API:
 
-- `create`: `POST /seller-applications`;
-- `submit` и `resubmit`: `POST /seller-applications/{applicationId}/submit`;
-- `approve`, `reject`, `rework`: `POST /seller-applications/{applicationId}/decision` с решением `APPROVED`, `REJECTED` или `NEEDS_REWORK`.
+- создание заявки, статус `DRAFT`: `POST /seller-applications`;
+- отправка на проверку и повторная отправка, статус `SUBMITTED`: `POST /seller-applications/{applicationId}/submit`;
+- решение юриста, статус `APPROVED`, `REJECTED` или `NEEDS_REWORK`: `POST /seller-applications/{applicationId}/decision`.
 
 Правила, зашитые в контракт:
 
@@ -167,16 +167,23 @@ Authorization: Bearer <токен юриста>
 
 Сервисы не вызывают друг друга напрямую. Seller Verification Service после смены статуса заявки пишет сообщение в топик Kafka, Notification Service читает его из топика. Изменение данных (PATCH), архивация и восстановление статус не меняют, поэтому событий не создают. HTTP используется только между клиентом и сервисом заявок и когда Notification Service запрашивает email продавца.
 
-```mermaid
-flowchart LR
-    U["Продавец или юрист"] -- "HTTP" --> P["Сервис заявок"]
-    P -- "event" --> T[("Kafka")]
-    T -- "event" --> C["Сервис уведомлений"]
-    C -- "HTTP GET" --> P
-    C -- "email" --> U
+```text
+Продавец или юрист
+        │ HTTP
+        ▼
+Сервис заявок ◀── HTTP: запрос email ───┐
+        │ событие                       │
+        ▼                               │
+      Kafka                             │
+        │ событие                       │
+        ▼                               │
+Сервис уведомлений ─────────────────────┘
+        │ письмо
+        ▼
+Продавец или юрист
 ```
 
-Сервис заявок здесь Seller Verification Service (продюсер), сервис уведомлений Notification Service (подписчик). Сервис заявок публикует событие (event) в Kafka, сервис уведомлений читает его, запрашивает email продавца по HTTP и отправляет письмо. Топик, ключ сообщения и группа подписчика указаны в таблице ниже.
+Сервис заявок здесь Seller Verification Service (продюсер), сервис уведомлений Notification Service (подписчик). Сервис заявок публикует событие в Kafka, сервис уведомлений читает его, запрашивает email продавца по HTTP и отправляет письмо. Топик, ключ сообщения и группа подписчика указаны в таблице ниже.
 
 | | Значение |
 |---|---|
