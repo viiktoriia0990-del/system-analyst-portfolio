@@ -27,12 +27,12 @@ POST /seller-applications/{applicationId}/decision     Принять решен
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DRAFT: создать
-    DRAFT --> SUBMITTED: отправить
-    SUBMITTED --> APPROVED: одобрить
-    SUBMITTED --> REJECTED: отклонить
-    SUBMITTED --> NEEDS_REWORK: вернуть на доработку
-    NEEDS_REWORK --> SUBMITTED: отправить повторно
+    [*] --> DRAFT: #160;#160;создать#160;#160;
+    DRAFT --> SUBMITTED: #160;#160;отправить#160;#160;
+    SUBMITTED --> APPROVED: #160;#160;одобрить#160;#160;
+    SUBMITTED --> REJECTED: #160;#160;отклонить#160;#160;
+    SUBMITTED --> NEEDS_REWORK: #160;#160;на доработку#160;#160;
+    NEEDS_REWORK --> SUBMITTED: #160;#160;повторно#160;#160;
     APPROVED --> [*]
     REJECTED --> [*]
 ```
@@ -163,12 +163,14 @@ Authorization: Bearer <токен юриста>
 
 ```mermaid
 flowchart LR
-    U[Продавец или юрист] -->|HTTP| P[Seller Verification Service<br/>продюсер]
-    P -->|Kafka: SellerApplicationStatusChanged<br/>key = applicationId| T[(Топик<br/>seller-application.status-changed.v1)]
-    T -->|Kafka, group: notification-service| C[Notification Service<br/>подписчик]
-    C -->|HTTP: GET заявки за email| P
-    C -->|письмо| U
+    U["Продавец или юрист"] -- "#160;#160;HTTP#160;#160;" --> P["Сервис заявок"]
+    P -- "#160;#160;событие#160;#160;" --> T[("Kafka")]
+    T -- "#160;#160;событие#160;#160;" --> C["Сервис уведомлений"]
+    C -- "#160;#160;HTTP: email#160;#160;" --> P
+    C -- "#160;#160;письмо#160;#160;" --> U
 ```
+
+Сервис заявок здесь Seller Verification Service (продюсер), сервис уведомлений Notification Service (подписчик). Топик, ключ сообщения и группа подписчика указаны в таблице ниже.
 
 | | Значение |
 |---|---|
