@@ -25,17 +25,7 @@ POST /seller-applications/{applicationId}/decision     Принять решен
 
 ### Статусы заявки
 
-```mermaid
-stateDiagram-v2
-    [*] --> DRAFT
-    DRAFT --> SUBMITTED
-    SUBMITTED --> APPROVED
-    SUBMITTED --> REJECTED
-    SUBMITTED --> NEEDS_REWORK
-    NEEDS_REWORK --> SUBMITTED
-    APPROVED --> [*]
-    REJECTED --> [*]
-```
+![Статусы заявки](docs/statuses.png)
 
 Переходы между статусами выполняют методы API:
 
@@ -167,23 +157,9 @@ Authorization: Bearer <токен юриста>
 
 Сервисы не вызывают друг друга напрямую. Seller Verification Service после смены статуса заявки пишет сообщение в топик Kafka, Notification Service читает его из топика. Изменение данных (PATCH), архивация и восстановление статус не меняют, поэтому событий не создают. HTTP используется только между клиентом и сервисом заявок и когда Notification Service запрашивает email продавца.
 
-```text
-Продавец или юрист
-        │ HTTP
-        ▼
-Сервис заявок ◀── HTTP: запрос email ───┐
-        │ событие                       │
-        ▼                               │
-      Kafka                             │
-        │ событие                       │
-        ▼                               │
-Сервис уведомлений ─────────────────────┘
-        │ письмо
-        ▼
-Продавец или юрист
-```
+![Обмен событиями через Kafka](docs/kafka-flow.png)
 
-Сервис заявок здесь Seller Verification Service (продюсер), сервис уведомлений Notification Service (подписчик). Сервис заявок публикует событие в Kafka, сервис уведомлений читает его, запрашивает email продавца по HTTP и отправляет письмо. Топик, ключ сообщения и группа подписчика указаны в таблице ниже.
+Seller Verification Service публикует событие в Kafka, Notification Service читает его, запрашивает email продавца по HTTP и отправляет письмо. Подробности в таблице ниже.
 
 | | Значение |
 |---|---|
@@ -258,6 +234,7 @@ Authorization: Bearer <сервисный токен Notification Service>
 ## Как устроен проект
 
 ```text
+docs/         Схемы: исходники Mermaid (.mmd) и картинки (.png)
 openapi/      OpenAPI-контракт
 asyncapi/     AsyncAPI-контракт и сообщение
 schemas/      Какие данные допустимы

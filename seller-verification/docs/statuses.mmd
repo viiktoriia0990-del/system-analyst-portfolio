@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> DRAFT
+    DRAFT --> SUBMITTED
+    SUBMITTED --> APPROVED
+    SUBMITTED --> REJECTED
+    SUBMITTED --> NEEDS_REWORK
+    NEEDS_REWORK --> SUBMITTED
+    APPROVED --> [*]
+    REJECTED --> [*]
